@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link href="../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom styles for this template -->
+  <link href="../public/css/main.css" rel="stylesheet">
+  <script src="../public/js/jquery.min.js"></script>
+  <!--bootstrap插件-->
+<script src="../public/lib/lib/bootstrap.js"></script>
+<!--分页插件-->
+<script src="../public/lib/lib/bootstrap-paginator.js"></script>
+</head>
+<body>
+  <div class="row">
+    <div class="col-md-12">
+        <div class="portlet">
+            <div id="htmlDiv"></div>
+            <div class="col-lg-12" align="center">
+                <!-- 分页控件，标签必须是<ul> -->
+                <ul id="pageButton"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+  // 初始化页面
+getPageOfMemo(1);
+
+// 分页函数
+function getPageOfMemo(page) {
+    
+    // 获取请求参数(input里面的时间人员参数可忽略注释)
+    var beginTime = $("#signDate").val();
+    var endTime = $("#signDate1").val();
+    var organId = $("#organId").val();
+    var personName = $("#personName").val();
+
+    $.ajax({
+        url : "/search",
+        type : "POST",
+        data : {
+            "page" : page, // 初始页
+            "personName" : personName,//以下是搜索相关的参数  input里面的时间人员参数可忽略注释，同上
+            "sleepStartTime" : beginTime,
+            "sleepStopTime" : endTime,
+            "organId" : organId,
+        },
+        dataType : "json",
+        success : function(data) {
+            var totalPages;
+            if (data.returnData != null) {
+                totalPages = data.returnData.totalPages;
+                var htm = "";
+                $.each(data.returnData.sList, function(i, item) {
+
+                    htm += "<div class='row' id='row-con' ><div><div class='sleep1'>";
+                    htm += "<div>" + item.uuid + "</div><div><img id='headUrl' src='"
+                            + item.headUrl + "'/></div><div>" + item.personName
+                            + "</div>";
+                    htm += "</div><div class='sleep2'>";
+
+                    if (item.personSex == 1000001) {
+                        htm += "<div>性别：男</div>";
+                    } else {
+                        htm += "<div>性别：女</div>";
+                    }
+
+                    htm += "<div>年龄：" + item.personAge + "</div><div>部门："
+                            + item.organName + "</div>";
+                    htm += "</div><div class='sleep3'>"
+                    htm += "<div>入睡时间：" + item.sleepStartTime
+                            + "</div><div>睡醒时间：" + item.sleepStopTime
+                            + "</div>";
+                    htm += "</div><div class='sleep4'>";
+                    htm += "<div>平均心率：" + item.heart + "次/分</div><div>平均呼吸："
+                            + item.breath + "次/分</div><div>翻身次数："
+                            + item.bodyMove + "次/分</div>";
+                    htm += "</div><div class='sleep6'>";
+                    htm += "<div ><p>" + item.sleepQuality + "分</p>";
+
+                    if (item.sleepQuality >= 60) {
+                        htm += "<p style='border: 4px solid green;'>及格</p>";
+                    } else {
+                        htm += "<p >不及格</p>";
+                    }
+
+                    htm += "</div></div><div class='sleep7' onclick='getDetail("+item.id+")'>详情</div>";
+                    htm += "</div></div>";
+
+                });
+                $('#htmlDiv').html(htm);
+                
+
+                var element = $('#pageButton');
+                var options = {
+                    bootstrapMajorVersion : 3,
+                    currentPage : page, // 当前页数
+                    numberOfPages : 5, // 显示按钮的数量
+                    totalPages : totalPages, // 总页数
+                    itemTexts : function(type, page, current) {
+                        switch (type) {
+                        case "first":
+                            return "首页";
+                        case "prev":
+                            return "上一页";
+                        case "next":
+                            return "下一页";
+                        case "last":
+                            return "末页";
+                        case "page":
+                            return page;
+                        }
+                    },
+                    // 点击事件，用于通过Ajax来刷新整个list列表
+                    onPageClicked : function(event, originalEvent, type, page) {
+                        getPageOfMemo(page);
+                    }
+                };
+
+                element.bootstrapPaginator(options);
+            }
+        }
+    });
+};
+</script>
+</html>
+<style>
+  #htmlDiv {
+    color: #5b5d5e;
+}
+
+#row-con {
+    border: 1px solid #ced2d4;
+    margin-bottom: 25px;
+    width: 90%;
+    margin-left: 10px;
+    border-radius: 23px !important;
+}
+
+.sleep1 {
+    width: 15%;
+    float: left;
+    text-align: center;
+}
+
+.sleep2 {
+    width: 15%;
+    float: left;
+    text-align: center;
+}
+
+.sleep3 {
+    width: 22%;
+    float: left;
+    text-align: center;
+}
+
+.sleep4 {
+    width: 23%;
+    float: left;
+    text-align: center;
+}
+
+.sleep5 {
+    width: 15%;
+    float: left;
+    text-align: center;
+}
+
+.sleep6 {
+    width: 9%;
+    float: left;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.sleep6 div {
+    border: 4px solid orangered;
+    border-radius: 50px !important;
+    width: 72px;
+    height: 72px;
+}
+
+.sleep7 {
+    width: 10%;
+    float: left;
+    text-align: center;
+    color: blue;
+    margin-top: 27px;
+}
+
+.text-description {
+    text-align: center;
+    height: 35px;
+}
+
+.text-capitalize {
+    text-align: center;
+    height: 35px;
+}
+
+.text-muted {
+    text-align: center;
+    height: 35px;
+    font-size: 18px;
+    color: #000000;
+    margin-top: 10px;
+}
+
+#headUrl {
+    width: 30px;
+    height: 35px;
+}
+</style>
